@@ -34,26 +34,32 @@ In Claude Code:
 
 ```
 # 1. Add marketplace
-/plugin marketplace add minhoyoo-iotrust/gsdu
+/plugin marketplace add minhoyoo-iotrust/claude-plugin
 
 # 2. Install plugin
 /plugin install gsdu
 ```
 
+To update the plugin:
+
+```
+/plugin update gsdu@iotrust.kr
+```
+
 To load the plugin from a local directory (useful for development/testing without publishing):
 
 ```bash
-claude --plugin-dir /path/to/gsdu
+claude --plugin-dir /path/to/claude-plugin/plugins/gsdu
 ```
 
 This starts Claude Code with the plugin loaded directly from disk, so you can edit and test without pushing to the marketplace.
 
 ### Option 2: Local skill (per project)
 
-Copy `skills/autopilot/` to your project's `.claude/skills/gsd-autopilot/`:
+Copy `plugins/gsdu/skills/autopilot/` to your project's `.claude/skills/gsd-autopilot/`:
 
 ```bash
-cp -r skills/autopilot/ /your/project/.claude/skills/gsd-autopilot/
+cp -r plugins/gsdu/skills/autopilot/ /your/project/.claude/skills/gsd-autopilot/
 ```
 
 Invoked as `/gsd-autopilot` instead of `/gsdu:autopilot`.
@@ -63,7 +69,7 @@ Invoked as `/gsd-autopilot` instead of `/gsdu:autopilot`.
 Copy to `~/.claude/skills/gsd-autopilot/` for all projects:
 
 ```bash
-cp -r skills/autopilot/ ~/.claude/skills/gsd-autopilot/
+cp -r plugins/gsdu/skills/autopilot/ ~/.claude/skills/gsd-autopilot/
 ```
 
 ## Usage
