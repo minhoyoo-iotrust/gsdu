@@ -4,6 +4,12 @@ Orchestrate full GSD milestone execution: plan → execute → verify → gap cl
 This workflow calls GSD tools and workflows but is NOT part of GSD itself. It requires GSD to be installed globally.
 </purpose>
 
+<constraints>
+- NEVER re-invoke /gsdu:autopilot or the gsdu:autopilot skill from within this workflow
+- Use the Agent tool (not Skill tool) for all subagent delegation
+- If a step fails, report the error and STOP — do not retry automatically
+</constraints>
+
 <constants>
 GSD_TOOLS="node $HOME/.claude/get-shit-done/bin/gsd-tools.cjs"
 GSD_WORKFLOWS="$HOME/.claude/get-shit-done/workflows"
@@ -126,7 +132,7 @@ Parse `plan_count` from phase info.
 **If plan_count == 0: Run plan-phase**
 
 ```
-Task(
+Agent(
   subagent_type="gsd-planner",
   description="Plan phase {N}",
   prompt="
@@ -179,7 +185,7 @@ Phase {N}: {plan_count} plan(s) already exist, skipping planning.
 **2b. Execute phase:**
 
 ```
-Task(
+Agent(
   subagent_type="gsd-executor",
   description="Execute phase {N}",
   prompt="
@@ -235,11 +241,11 @@ VERIFY_STATUS=$(grep "^status:" .planning/phases/*{N}*/*-VERIFICATION.md 2>/dev/
 for gap_iteration in 1..MAX_GAP_ITERATIONS:
 
   1. Plan gap fixes:
-     Task(subagent_type="gsd-planner") with --gaps flag
+     Agent(subagent_type="gsd-planner") with --gaps flag
      → reads VERIFICATION.md → creates gap closure PLAN.md files
 
   2. Execute gap fixes:
-     Task(subagent_type="gsd-executor") with --gaps-only flag
+     Agent(subagent_type="gsd-executor") with --gaps-only flag
 
   3. Re-verify:
      Check VERIFICATION.md status again
@@ -279,7 +285,7 @@ Proceeding to Phase {N+1}...
 ```
 
 ```
-Task(
+Agent(
   subagent_type="gsd-integration-checker",
   description="Audit milestone",
   prompt="
@@ -383,10 +389,11 @@ Status: {AUDIT_STATUS}
 
 1. Log which phase/step failed and the error
 2. Present progress report (what completed, what remains)
-3. Suggest manual recovery:
+3. Suggest manual recovery (display to user, do NOT auto-execute):
    - `/gsd:execute-phase {N}` — retry failed phase
-   - `/gsdu:autopilot {N}` — restart autopilot from failed phase
+   - `/gsdu:autopilot {N}` — restart autopilot from failed phase (user must run manually)
 4. Do NOT attempt automatic retry of failed phases
+5. Do NOT invoke /gsdu:autopilot from within this workflow — this causes infinite recursion
 
 **classifyHandoffIfNeeded bug:**
 If a subagent reports "failed" with `classifyHandoffIfNeeded is not defined`, run spot-checks:
@@ -409,7 +416,7 @@ No separate resume state needed — GSD's file-based state is the resume mechani
 
 <context_efficiency>
 - Orchestrator: ~15% context (loop control, state checks, routing)
-- Each plan/execute: fresh 200k via Task subagent
+- Each plan/execute: fresh 200k via Agent subagent
 - No full file contents in orchestrator — paths only, subagents read independently
 - Phase results via gsd-tools CLI (JSON) and file existence checks
 </context_efficiency>

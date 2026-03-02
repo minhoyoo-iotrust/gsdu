@@ -10,8 +10,7 @@ allowed-tools:
   - Glob
   - Grep
   - Bash
-  - Task
-  - TodoWrite
+  - Agent
   - AskUserQuestion
 ---
 
